@@ -1,0 +1,38 @@
+services:
+  db:
+    image: postgres:17.4-alpine
+    environment:
+      POSTGRES_DB: guetteur
+      POSTGRES_USER: guetteur_admin
+      POSTGRES_PASSWORD: ${POSTGRES_ADMIN_PASSWORD:?Définissez POSTGRES_ADMIN_PASSWORD dans .env}
+      APP_DATABASE_PASSWORD: ${APP_DATABASE_PASSWORD:?Définissez APP_DATABASE_PASSWORD dans .env}
+      MIGRATION_DATABASE_PASSWORD: ${MIGRATION_DATABASE_PASSWORD:?Définissez MIGRATION_DATABASE_PASSWORD dans .env}
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - guetteur_postgres:/var/lib/postgresql/data
+      - ./infra/postgres/init-roles.sh:/docker-entrypoint-initdb.d/01-init-roles.sh:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U guetteur_admin -d guetteur"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  api:
+    build:
+      context: ./backend
+    environment:
+      APP_ENV: local
+      APP_SECRET_KEY: ${APP_SECRET_KEY:?Définissez APP_SECRET_KEY dans .env}
+      ALLOWED_ORIGINS: http://localhost:5173
+      DATABASE_URL: postgresql+psycopg://app_user:${APP_DATABASE_PASSWORD:?Définissez APP_DATABASE_PASSWORD dans .env}@db:5432/guetteur
+    ports:
+      - "127.0.0.1:8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  guetteur_postgres:

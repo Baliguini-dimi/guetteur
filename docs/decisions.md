@@ -24,7 +24,7 @@ Toute table de données porte un `organization_id`. La RLS est activée et forc�
 
 ## 22 octobre 2026 - D6 : droits en base
 
-`app_user` ne reçoit que des GRANT explicites accordés par les migrations. `log_events` est en ajout seul. La purge de rétention passera par un rôle dédié à créer.
+`app_user` ne reçoit que des GRANT explicites accordés par les migrations. `log_events` est en ajout seul. La purge de rétention passera par un rôle dédié à créer. Exception à l'ajout seul : la suppression d'un site ou d'une organisation supprime ses événements par cascade, car les contrôles d'intégrité de PostgreSQL ignorent la RLS.
 
 ## 22 octobre 2026 - D7 : paiement
 
@@ -49,6 +49,14 @@ La version cible est Python 3.12 pour la CI et Docker. Le poste de développemen
 ## 22 octobre 2026 - D12 : dépôt
 
 Le projet est un monorepo privé nommé `guetteur`.
+
+## 22 octobre 2026 - D13 : première exécution de la CI
+
+Le contrôle backend a réussi sous Python 3.12. Le contrôle des secrets a échoué faute de `GITHUB_TOKEN`, puis a été corrigé. `requirements.lock` a été généré sous Windows et Python 3.14 : il omet `greenlet`, que pip a installé sans version fixée sous Python 3.12. Le fichier sera régénéré dans un conteneur Python 3.12 sous Linux, et les dépendances d'exécution seront séparées de celles de développement.
+
+## 22 octobre 2026 - D14 : épinglage des actions
+
+Les actions GitHub tierces sont épinglées par SHA et Dependabot les met à jour. `gitleaks-action` reste sur son tag `@v2` en attendant la récupération de son SHA.
 
 ## Points ouverts
 
