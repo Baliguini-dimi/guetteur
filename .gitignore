@@ -1,0 +1,60 @@
+# Secrets et configuration locale
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+secrets/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+*.egg-info/
+dist/
+build/
+
+# Node
+node_modules/
+.vite/
+.next/
+coverage/
+*.tsbuildinfo
+npm-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Base de données, sauvegardes et exports
+*.sqlite3
+*.db
+*.dump
+*.sql.gz
+backups/
+exports/
+
+# Journaux et fichiers temporaires
+*.log
+logs/
+tmp/
+.cache/
+
+# Laboratoire local : données générées
+lab/data/
+lab/output/
+
+# Docker
+docker-compose.override.yml
+
+# Éditeurs et système
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
