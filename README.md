@@ -38,7 +38,7 @@ docker-compose.yml
 | Qualité backend | pytest, Ruff, mypy, gitleaks |
 | Interface et SDK | React, TypeScript et Vite, à démarrer après validation de la charte |
 
-Les dépendances backend directes sont épinglées dans `backend/pyproject.toml`. Pour installer les dépendances de développement dans un environnement virtuel, exécuter `python -m pip install -e "./backend[dev]"`, puis `pytest backend/tests`, `ruff check backend` et `mypy backend/src`.
+Les dépendances backend directes sont épinglées dans `backend/pyproject.toml`. Pour installer les dépendances de développement dans un environnement virtuel, exécuter `python -m pip install -e "./backend[dev]"`, puis, depuis le dossier `backend`, lancer `pytest`, `ruff check .` et `mypy src`.
 
 ## Sécurité
 
