@@ -1,0 +1,3 @@
+Les migrations sont exécutées par le compte DATABASE_MIGRATION_URL. L'application utilise
+DATABASE_URL, qui ne doit pas être propriétaire des tables et ne doit pas avoir BYPASSRLS.
+Chaque transaction utilisateur définira app.organization_id après vérification serveur.
