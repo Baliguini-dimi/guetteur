@@ -1,0 +1,262 @@
+/*
+  tokens.css
+  Variables de design du projet, tirées de docs/charte.md (version 1.0).
+  Règle : aucune couleur, taille ni espacement n'est écrit en dur dans les composants.
+  Tout passe par ces variables. Toute modification est notée dans docs/decisions.md.
+
+  Polices à charger dans le <head> de la page (deux familles, rien d'autre) :
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Source+Serif+4:wght@600&display=swap">
+
+  Points de rupture (les media queries n'acceptent pas de variables) :
+  petit : 640px, moyen : 960px, grand : 1280px.
+*/
+
+/* ---------- Thème clair (par défaut) ---------- */
+:root {
+  color-scheme: light;
+
+  /* Couleurs */
+  --color-bg: #f7f6f3;
+  --color-surface: #ffffff;
+  --color-border: #d9d6ce;
+  --color-border-soft: #e6e3dc;
+  --color-text: #1b1f23;
+  --color-text-muted: #5b6470;
+  --color-accent: #1f3a5f;
+  --color-accent-hover: #162b48;
+  --color-on-accent: #ffffff;
+  --color-skeleton: #e6e3dc;
+
+  /* Gravités : réservées aux gravités, jamais décoratives */
+  --sev-critique: #b42318;
+  --sev-critique-on: #ffffff;
+  --sev-elevee: #b54708;
+  --sev-moyenne: #946a00;
+  --sev-faible: #475467;
+  --sev-faible-border: #d9d6ce;
+
+  /* Ombre : uniquement pour les fenêtres superposées */
+  --shadow-overlay: 0 8px 24px rgba(27, 31, 35, 0.12);
+}
+
+/* ---------- Thème sombre (option, à tester à l'implémentation) ---------- */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --color-bg: #11161c;
+    --color-surface: #171e26;
+    --color-border: #2a3441;
+    --color-border-soft: #222b36;
+    --color-text: #e6e8eb;
+    --color-text-muted: #9aa4b1;
+    --color-accent: #8fb0db;
+    --color-accent-hover: #b0c8e8;
+    --color-on-accent: #11161c;
+    --color-skeleton: #232c37;
+    --sev-critique: #f97066;
+    --sev-critique-on: #11161c;
+    --sev-elevee: #f79009;
+    --sev-moyenne: #fec84b;
+    --sev-faible: #98a2b3;
+    --sev-faible-border: #2a3441;
+    --shadow-overlay: 0 8px 24px rgba(0, 0, 0, 0.5);
+  }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --color-bg: #11161c;
+  --color-surface: #171e26;
+  --color-border: #2a3441;
+  --color-border-soft: #222b36;
+  --color-text: #e6e8eb;
+  --color-text-muted: #9aa4b1;
+  --color-accent: #8fb0db;
+  --color-accent-hover: #b0c8e8;
+  --color-on-accent: #11161c;
+  --color-skeleton: #232c37;
+  --sev-critique: #f97066;
+  --sev-critique-on: #11161c;
+  --sev-elevee: #f79009;
+  --sev-moyenne: #fec84b;
+  --sev-faible: #98a2b3;
+  --sev-faible-border: #2a3441;
+  --shadow-overlay: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+
+/* ---------- Valeurs communes aux deux thèmes ---------- */
+:root {
+  /* Typographie */
+  --font-serif: "Source Serif 4", Georgia, "Times New Roman", serif;
+  --font-sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: ui-monospace, Menlo, Consolas, "Liberation Mono", monospace;
+
+  --text-xs: 0.75rem;      /* 12 px : légendes, en-têtes de colonnes */
+  --text-mono: 0.8125rem;  /* 13 px : IP, chemins, identifiants */
+  --text-sm: 0.875rem;     /* 14 px : texte d'interface */
+  --text-md: 1rem;         /* 16 px : texte de lecture */
+  --text-h3: 1.1875rem;    /* 19 px */
+  --text-h2: 1.5rem;       /* 24 px */
+  --text-h1: 1.875rem;     /* 30 px */
+  --text-display: 2.5rem;  /* 40 px : pages publiques */
+
+  --leading-tight: 1.15;
+  --leading-heading: 1.25;
+  --leading-ui: 1.45;
+  --leading-reading: 1.6;
+
+  /* Espacement : unité de base de 4 px */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-12: 3rem;
+
+  /* Formes */
+  --radius-control: 2px;
+  --radius-block: 0;
+  --border-width: 1px;
+
+  /* Mise en page */
+  --container-max: 1200px;
+  --container-pad: 1rem;
+  --reading-width: 70ch;
+  --row-compact: 36px;
+  --row-touch: 44px;
+  --touch-min: 44px;
+
+  /* Mouvement */
+  --motion-fast: 120ms;
+  --motion-base: 160ms;
+  --ease: ease-out;
+
+  /* Focus */
+  --focus-ring: 2px solid var(--color-accent);
+  --focus-offset: 2px;
+}
+
+@media (min-width: 640px) {
+  :root {
+    --container-pad: 2rem;
+  }
+}
+
+/* ---------- Base minimale ---------- */
+html {
+  font-size: 100%;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  line-height: var(--leading-ui);
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-serif);
+  font-weight: 600;
+  margin: 0;
+  color: var(--color-text);
+}
+
+h1 { font-size: var(--text-h1); line-height: var(--leading-heading); }
+h2 { font-size: var(--text-h2); line-height: var(--leading-heading); }
+h3 { font-size: var(--text-h3); line-height: var(--leading-heading); }
+
+a {
+  color: var(--color-accent);
+}
+
+a:hover {
+  color: var(--color-accent-hover);
+}
+
+:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-offset);
+}
+
+table {
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+
+.num {
+  font-variant-numeric: tabular-nums;
+}
+
+.mono {
+  font-family: var(--font-mono);
+  font-size: var(--text-mono);
+}
+
+.container {
+  max-width: var(--container-max);
+  margin-inline: auto;
+  padding-inline: var(--container-pad);
+}
+
+/* ---------- Étiquettes de gravité ---------- */
+.sev {
+  display: inline-block;
+  padding: 1px var(--space-2);
+  border: var(--border-width) solid currentColor;
+  border-radius: var(--radius-control);
+  font-size: var(--text-xs);
+  font-weight: 500;
+  line-height: var(--leading-ui);
+}
+
+.sev-critique {
+  background: var(--sev-critique);
+  border-color: var(--sev-critique);
+  color: var(--sev-critique-on);
+  font-weight: 600;
+}
+
+.sev-elevee {
+  color: var(--sev-elevee);
+  font-weight: 600;
+}
+
+.sev-moyenne {
+  color: var(--sev-moyenne);
+}
+
+.sev-faible {
+  color: var(--sev-faible);
+  border-color: var(--sev-faible-border);
+}
+
+/* ---------- Squelette de chargement ---------- */
+.skeleton {
+  background: var(--color-skeleton);
+  border-radius: var(--radius-control);
+  animation: skeleton-fade 1.4s ease-in-out infinite;
+}
+
+@keyframes skeleton-fade {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+/* ---------- Préférence « réduire les animations » ---------- */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
