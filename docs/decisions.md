@@ -70,6 +70,14 @@ L'image `python:3.12.9-slim` est épinglée par le digest `sha256:48a11b7ba705fd
 
 La CI installe les dépendances de développement avec le lock et les empreintes, exécute `pip-audit` sur les dépendances d'exécution, épingle `gitleaks` par SHA et limite chaque job à dix minutes.
 
+## 22 octobre 2026 - D18 : correction des vulnérabilités Starlette
+
+`pip-audit 2.10.1` a signalé 14 avis sur `starlette 0.46.2`, parmi 26 dépendances examinées. Les versions corrigées indiquées vont jusqu'à `1.3.1`, qui corrige également les autres avis. FastAPI passe de `0.115.12` à `0.143.0` et Starlette à `1.3.1`. Starlette reste une dépendance directe, car `backend/src/guetteur/main.py` importe `TrustedHostMiddleware` et le middleware de base depuis Starlette. L'audit du nouveau lock examine 28 dépendances et ne relève aucune vulnérabilité connue.
+
+FastAPI `0.143.0` demande `annotated-doc>=0.0.2` et `opentelemetry-api>=1.44.0`, ajoutés au lock d'exécution. Les versions verrouillées sont `annotated-doc 0.0.5` (publiée le 28 juillet 2026, licence MIT) et `opentelemetry-api 1.45.1` (publiée le 6 octobre 2026, licence Apache-2.0).
+
+Le résultat nul d'un audit temporaire précédent venait d'un export PowerShell avec `Set-Content -NoNewline`, qui avait concaténé les lignes et laissé zéro dépendance à examiner. Aucune vulnérabilité ne doit être ignorée sans être consignée dans les décisions du projet. Chaque audit doit afficher le nombre de dépendances examinées et vérifier qu'il correspond au nombre de paquets du lock.
+
 ## Points ouverts
 
 - Choisir l'hébergement de test.

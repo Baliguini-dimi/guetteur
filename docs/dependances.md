@@ -33,10 +33,12 @@ Cette commande installe le lock avec `--require-hashes`, installe le paquet sans
 La CI utilise `pip-audit 2.10.1` avec le fichier d'exécution :
 
 ```powershell
-docker run --rm --name guetteur-pipaudit -v "${PWD}\backend:/work" -w /work python:3.12.9-slim sh -lc "python -m pip install pip-audit==2.10.1 && pip-audit --require-hashes -r requirements.lock"
+docker run --rm --name guetteur-pipaudit -v "${PWD}\backend:/work" -w /work python:3.12.9-slim sh -lc "python -m pip install pip-audit==2.10.1 && pip-audit --require-hashes --format json -r requirements.lock"
 ```
 
-La commande vérifie les empreintes du fichier pendant l'audit. Un résultat non nul signale les vulnérabilités détectées et doit être traité avant la fusion.
+La commande vérifie les empreintes du fichier pendant l'audit. Dans le JSON, la longueur de `dependencies` doit correspondre au nombre de paquets épinglés dans le lock. Vérifier ce nombre avant d'interpréter le résultat; un résultat non nul signale les vulnérabilités détectées et doit être traité avant la fusion.
+
+Sous Windows PowerShell 5.1, ne créez pas le fichier temporaire du lock par redirection simple, qui peut produire un fichier UTF-16 illisible par l'auditeur. Utilisez `git show HEAD:backend/requirements.lock | Out-File -Encoding ascii <fichier temporaire>` et ne mettez pas `-NoNewline`, qui concatène toutes les lignes et peut faire examiner zéro dépendance.
 
 ## Relever le digest de l'image
 
