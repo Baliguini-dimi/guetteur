@@ -8,11 +8,12 @@ version = "0.1.0"
 description = "API locale de surveillance de sécurité pour Guetteur"
 requires-python = ">=3.12"
 dependencies = [
-  "fastapi==0.115.12",
+  "fastapi==0.143.0",
   "alembic==1.15.2",
   "psycopg[binary]==3.2.10",
   "pydantic-settings==2.8.1",
   "sqlalchemy==2.0.40",
+  "starlette==1.3.1",
   "uvicorn[standard]==0.34.0",
 ]
 
