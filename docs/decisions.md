@@ -72,11 +72,23 @@ La CI installe les dépendances de développement avec le lock et les empreintes
 
 ## 22 octobre 2026 - D18 : correction des vulnérabilités Starlette
 
-`pip-audit 2.10.1` a signalé 14 avis sur `starlette 0.46.2`, parmi 26 dépendances examinées. Les versions corrigées indiquées vont jusqu'à `1.3.1`, qui corrige également les autres avis. FastAPI passe de `0.115.12` à `0.143.0` et Starlette à `1.3.1`. Starlette reste une dépendance directe, car `backend/src/guetteur/main.py` importe `TrustedHostMiddleware` et le middleware de base depuis Starlette. L'audit du nouveau lock examine 28 dépendances et ne relève aucune vulnérabilité connue.
+`pip-audit 2.10.1` a signalé 14 entrées, soit 7 avis distincts (PYSEC-2026-161, 248, 249, 1941, 1942, 2280 et 2281) sur `starlette 0.46.2`, parmi 26 dépendances examinées. Les versions corrigées indiquées vont jusqu'à `1.3.1`, qui corrige également les autres avis. FastAPI passe de `0.115.12` à `0.143.0` et Starlette à `1.3.1`. Starlette reste une dépendance directe, car `backend/src/guetteur/main.py` importe `TrustedHostMiddleware` et le middleware de base depuis Starlette. L'audit du nouveau lock examine 28 dépendances et ne relève aucune vulnérabilité connue.
 
 FastAPI `0.143.0` demande `annotated-doc>=0.0.2` et `opentelemetry-api>=1.44.0`, ajoutés au lock d'exécution. Les versions verrouillées sont `annotated-doc 0.0.5` (publiée le 28 juillet 2026, licence MIT) et `opentelemetry-api 1.45.1` (publiée le 6 octobre 2026, licence Apache-2.0).
 
 Le résultat nul d'un audit temporaire précédent venait d'un export PowerShell avec `Set-Content -NoNewline`, qui avait concaténé les lignes et laissé zéro dépendance à examiner. Aucune vulnérabilité ne doit être ignorée sans être consignée dans les décisions du projet. Chaque audit doit afficher le nombre de dépendances examinées et vérifier qu'il correspond au nombre de paquets du lock.
+
+## 28 octobre 2026 - D19 : tests d'isolation sur PostgreSQL
+
+Les tests d'intégration exécutés sur PostgreSQL 17.4 confirment les rôles, les indicateurs RLS, l'isolation entre deux organisations, les refus d'écriture et les droits sur `alembic_version`. Les 23 tests d'intégration réussissent après migration sur une base neuve. La fonction de contexte utilise `set_config('app.organization_id', ..., true)` : le contexte disparaît au commit. La suppression d'un site supprime ses événements par cascade, conformément à D6. Le contrôle négatif, effectué après désactivation de RLS sur `sites` dans la seule base de test, produit 10 échecs et 13 réussites; après réinitialisation et nouvelle migration, les 23 tests réussissent. Le job CI `isolation` exécute ces tests sur PostgreSQL. La vérification HSTS confirme l'absence de l'en-tête en environnement `local` et sa présence en `production`.
+
+## 28 octobre 2026 - D20 : création des organisations et purge
+
+`app_user` ne reçoit aucun droit `INSERT` sur `organizations`. La création de la première organisation et l'inscription devront passer par une procédure contrôlée à concevoir. La purge de rétention devra utiliser un rôle dédié à concevoir. Ces deux mécanismes restent des points ouverts.
+
+## 28 octobre 2026 - D21 : ports locaux configurables
+
+Les ports publiés par Docker Compose sont configurables avec `GUETTEUR_DB_PORT` et `GUETTEUR_API_PORT`, avec les valeurs par défaut 5432 et 8000. Cette possibilité répond au conflit de port 5432 signalé sur le poste. Le programme extérieur n'a pas été arrêté ni modifié. Le diagnostic de cette exécution n'a trouvé aucun écouteur Windows sur 5432 ou 8000, tandis que `Test-NetConnection` vers 5432 a répondu `True`.
 
 ## Points ouverts
 
