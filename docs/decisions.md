@@ -44,7 +44,7 @@ L'application lit uniquement les variables d'environnement du processus et ne li
 
 ## 22 octobre 2026 - D11 : Python
 
-La version cible est Python 3.12 pour la CI et Docker. Le poste de développement utilise Python 3.14.3. Les dépendances installées dans `backend/.venv` ont produit `requirements.lock`; la compatibilité avec Python 3.12 reste à confirmer par la CI et un test en conteneur.
+La version cible est Python 3.12 pour la CI et Docker. Le poste de développement utilise Python 3.14.3. Les dépendances installées dans `backend/.venv` ont produit `requirements.lock`. La compatibilité Python 3.12 est confirmée par la CI et par l'exécution en conteneur, et le lock a été régénéré sous Linux avec Python 3.12.
 
 ## 22 octobre 2026 - D12 : dépôt
 
@@ -52,11 +52,31 @@ Le projet est un monorepo privé nommé `guetteur`.
 
 ## 22 octobre 2026 - D13 : première exécution de la CI
 
-Le contrôle backend a réussi sous Python 3.12. Le contrôle des secrets a échoué faute de `GITHUB_TOKEN`, puis a été corrigé. `requirements.lock` a été généré sous Windows et Python 3.14 : il omet `greenlet`, que pip a installé sans version fixée sous Python 3.12. Le fichier sera régénéré dans un conteneur Python 3.12 sous Linux, et les dépendances d'exécution seront séparées de celles de développement.
+Le contrôle backend a réussi sous Python 3.12. Le contrôle des secrets a échoué faute de `GITHUB_TOKEN`, puis a été corrigé. `requirements.lock` a été généré sous Windows et Python 3.14 : il omet `greenlet`, que pip a installé sans version fixée sous Python 3.12. Les dépendances d'exécution sont maintenant séparées de celles de développement. La compatibilité Python 3.12 est confirmée par la CI et par l'exécution en conteneur, et le lock a été régénéré sous Linux avec Python 3.12.
 
 ## 22 octobre 2026 - D14 : épinglage des actions
 
 Les actions GitHub tierces sont épinglées par SHA et Dependabot les met à jour. `gitleaks-action` reste sur son tag `@v2` en attendant la récupération de son SHA.
+
+## 22 octobre 2026 - D15 : locks Python 3.12
+
+Les locks d'exécution et de développement sont régénérés sous Linux avec Python 3.12.9 et `pip-tools` 7.6.2. Ils utilisent des empreintes et incluent `greenlet`. L'extra de développement fixe `pip-audit` en version 2.10.1, publiée le 10 juin 2026.
+
+## 22 octobre 2026 - D16 : image Docker reproductible
+
+L'image `python:3.12.9-slim` est épinglée par le digest `sha256:48a11b7ba705fd53bf15248d1f94d36c39549903c5d59edcfa2f3f84126e7b44`. Le Dockerfile installe le lock avec empreintes, utilise un utilisateur non root, inclut les migrations, expose un contrôle de santé et applique le durcissement du conteneur dans Compose.
+
+## 22 octobre 2026 - D17 : contrôles CI
+
+La CI installe les dépendances de développement avec le lock et les empreintes, exécute `pip-audit` sur les dépendances d'exécution, épingle `gitleaks` par SHA et limite chaque job à dix minutes.
+
+## 22 octobre 2026 - D18 : correction des vulnérabilités Starlette
+
+`pip-audit 2.10.1` a signalé 14 avis sur `starlette 0.46.2`, parmi 26 dépendances examinées. Les versions corrigées indiquées vont jusqu'à `1.3.1`, qui corrige également les autres avis. FastAPI passe de `0.115.12` à `0.143.0` et Starlette à `1.3.1`. Starlette reste une dépendance directe, car `backend/src/guetteur/main.py` importe `TrustedHostMiddleware` et le middleware de base depuis Starlette. L'audit du nouveau lock examine 28 dépendances et ne relève aucune vulnérabilité connue.
+
+FastAPI `0.143.0` demande `annotated-doc>=0.0.2` et `opentelemetry-api>=1.44.0`, ajoutés au lock d'exécution. Les versions verrouillées sont `annotated-doc 0.0.5` (publiée le 28 juillet 2026, licence MIT) et `opentelemetry-api 1.45.1` (publiée le 6 octobre 2026, licence Apache-2.0).
+
+Le résultat nul d'un audit temporaire précédent venait d'un export PowerShell avec `Set-Content -NoNewline`, qui avait concaténé les lignes et laissé zéro dépendance à examiner. Aucune vulnérabilité ne doit être ignorée sans être consignée dans les décisions du projet. Chaque audit doit afficher le nombre de dépendances examinées et vérifier qu'il correspond au nombre de paquets du lock.
 
 ## Points ouverts
 

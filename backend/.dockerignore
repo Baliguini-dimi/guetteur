@@ -8,5 +8,5 @@ __pycache__/
 .env
 .env.*
 tests/
-requirements-dev.txt
+requirements-dev.lock
 .git/
