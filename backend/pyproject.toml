@@ -31,6 +31,8 @@ where = ["src"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+addopts = "-m 'not integration'"
+markers = ["integration: tests nécessitant un vrai PostgreSQL"]
 
 [tool.ruff]
 line-length = 100

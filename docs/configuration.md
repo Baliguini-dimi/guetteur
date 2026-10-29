@@ -10,6 +10,8 @@ Copiez `.env.example` vers `.env` et renseignez les valeurs adaptées à votre e
 | `POSTGRES_ADMIN_PASSWORD` | Mot de passe du compte PostgreSQL administrateur | oui | à générer |
 | `APP_DATABASE_PASSWORD` | Mot de passe du compte applicatif PostgreSQL | oui | à générer |
 | `MIGRATION_DATABASE_PASSWORD` | Mot de passe du compte PostgreSQL de migration | oui | à générer |
+| `GUETTEUR_DB_PORT` | Port local publié par Docker Compose pour PostgreSQL | non | `5432` par défaut; à changer en cas de conflit avec un autre programme |
+| `GUETTEUR_API_PORT` | Port local publié par Docker Compose pour l'API | non | `8000` par défaut; à changer en cas de conflit avec un autre programme |
 | `SESSION_COOKIE_SECURE` | Active l'attribut Secure des cookies de session | non | `false` en local seulement |
 | `SESSION_MAX_AGE_HOURS` | Durée maximale d'une session en heures | non | `12` |
 | `ADMIN_SESSION_IDLE_MINUTES` | Expiration d'inactivité des sessions administrateur | non | `30` |

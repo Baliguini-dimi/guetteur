@@ -40,6 +40,8 @@ docker-compose.yml
 
 Les instructions d'installation et de vérification du backend sont décrites dans la [procédure de gestion des dépendances](docs/dependances.md).
 
+La procédure des tests d'isolation PostgreSQL est décrite dans [la documentation dédiée](docs/tests-isolation.md).
+
 ## Sécurité
 
 - `.env` est ignoré par Git. `.env.example` ne contient aucune valeur de configuration.

@@ -8,7 +8,7 @@ services:
       APP_DATABASE_PASSWORD: ${APP_DATABASE_PASSWORD:?Définissez APP_DATABASE_PASSWORD dans .env}
       MIGRATION_DATABASE_PASSWORD: ${MIGRATION_DATABASE_PASSWORD:?Définissez MIGRATION_DATABASE_PASSWORD dans .env}
     ports:
-      - "127.0.0.1:5432:5432"
+      - "127.0.0.1:${GUETTEUR_DB_PORT:-5432}:5432"
     volumes:
       - guetteur_postgres:/var/lib/postgresql/data
       - ./infra/postgres/init-roles.sh:/docker-entrypoint-initdb.d/01-init-roles.sh:ro
@@ -28,7 +28,7 @@ services:
       ALLOWED_ORIGINS: http://localhost:5173
       DATABASE_URL: postgresql+psycopg://app_user:${APP_DATABASE_PASSWORD:?Définissez APP_DATABASE_PASSWORD dans .env}@db:5432/guetteur
     ports:
-      - "127.0.0.1:8000:8000"
+      - "127.0.0.1:${GUETTEUR_API_PORT:-8000}:8000"
     read_only: true
     tmpfs:
       - /tmp
