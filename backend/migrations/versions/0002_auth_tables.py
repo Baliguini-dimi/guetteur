@@ -209,6 +209,7 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
+    op.execute("REVOKE INSERT ON TABLE organizations FROM bootstrap_user")
     op.execute("DROP POLICY IF EXISTS organizations_bootstrap_insert ON organizations")
     op.execute("DROP TABLE IF EXISTS audit_log")
     op.execute("DROP TABLE IF EXISTS sessions")
