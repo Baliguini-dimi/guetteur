@@ -58,6 +58,27 @@ jobs:
       - name: Appliquer les migrations
         working-directory: backend
         run: DATABASE_MIGRATION_URL="postgresql+psycopg://migration_user:${MIGRATION_DATABASE_PASSWORD}@127.0.0.1:5432/guetteur" alembic upgrade head
+      - name: Vérifier la réversibilité de la migration
+        working-directory: backend
+        run: |
+          set -euo pipefail
+          DATABASE_MIGRATION_URL="postgresql+psycopg://migration_user:${MIGRATION_DATABASE_PASSWORD}@127.0.0.1:5432/guetteur" alembic downgrade -1
+          insert_privilege="$(docker compose -p guetteur-test exec -T db psql -U guetteur_admin -d guetteur -tA -c "SELECT has_table_privilege('bootstrap_user', 'organizations', 'INSERT')")"
+          if [[ "$insert_privilege" != "f" ]]; then
+            echo "Le droit INSERT de bootstrap_user sur organizations subsiste après la descente de migration."
+            exit 1
+          fi
+          policy_count="$(docker compose -p guetteur-test exec -T db psql -U guetteur_admin -d guetteur -tA -c "SELECT count(*) FROM pg_policies WHERE policyname = 'organizations_bootstrap_insert'")"
+          if [[ "$policy_count" != "0" ]]; then
+            echo "La politique organizations_bootstrap_insert subsiste après la descente de migration."
+            exit 1
+          fi
+          users_table="$(docker compose -p guetteur-test exec -T db psql -U guetteur_admin -d guetteur -tA -c "SELECT to_regclass('public.users') IS NULL")"
+          if [[ "$users_table" != "t" ]]; then
+            echo "La table public.users subsiste après la descente de migration."
+            exit 1
+          fi
+          DATABASE_MIGRATION_URL="postgresql+psycopg://migration_user:${MIGRATION_DATABASE_PASSWORD}@127.0.0.1:5432/guetteur" alembic upgrade head
       - name: Tester l'isolation entre organisations
         working-directory: backend
         run: |
