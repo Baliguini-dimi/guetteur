@@ -96,11 +96,17 @@ La migration 0002 crée `users`, `backup_codes`, `sessions` et `audit_log`, tout
 
 ## 31 octobre 2026 - D23 : rôle bootstrap_user
 
-`bootstrap_user` reçoit uniquement les droits d'insertion nécessaires, avec des politiques réservées à ce rôle. Il ne peut jamais lire les tables et son mot de passe n'est transmis qu'à la commande d'installation, jamais à l'API. La création du premier compte par cette commande sera réalisée à l'étape suivante.
+`bootstrap_user` reçoit uniquement les droits d'insertion nécessaires, avec des politiques réservées à ce rôle. Il ne peut jamais lire les tables et son mot de passe n'est transmis qu'à la commande d'installation, jamais à l'API. La politique d'insertion exige que le contexte `app.organization_id` soit fixé à l'identifiant de la nouvelle organisation; la commande de création du compte devra donc le fixer avant l'insertion. La création du premier compte par cette commande sera réalisée à l'étape suivante.
+
+La migration 0002 suppose que les rôles `app_user` et `bootstrap_user` existent déjà. Sur une base gérée, par exemple Neon, ils doivent être créés avant la migration; si l'un manque, la migration échoue, ce qui est voulu.
 
 ## 31 octobre 2026 - D24 : validation de la conception d'authentification
 
 Dimitri valide la note `docs/conception-authentification.md` et ses décisions A1 à A10. Les dépendances `argon2-cffi`, `pyotp` et `cryptography` seront ajoutées et verrouillées lors des étapes qui les utiliseront.
+
+## 31 octobre 2026 - D25 : réversibilité de la migration 0002
+
+La descente de la migration 0002 retire également le droit d'insertion de `bootstrap_user` sur `organizations`. La CI vérifie la réversibilité en descendant la migration, en contrôlant les droits et les politiques, puis en remontant la migration.
 
 ## Points ouverts
 

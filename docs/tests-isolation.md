@@ -2,6 +2,8 @@
 
 Ces tests vérifient sur PostgreSQL réel que les droits et les politiques RLS isolent les données de chaque organisation.
 
+Le job CI vérifie aussi la réversibilité de la migration 0002 : il la descend, contrôle le droit et la politique bootstrap ainsi que l'absence de `users`, puis la remonte avant les tests d'isolation.
+
 ## Ce que les tests vérifient
 
 - Les rôles et les tables imposent les privilèges attendus et RLS est activée et forcée.
