@@ -48,7 +48,7 @@ jobs:
       - name: Générer les secrets de test
         run: |
           set -euo pipefail
-          for name in POSTGRES_ADMIN_PASSWORD APP_DATABASE_PASSWORD MIGRATION_DATABASE_PASSWORD APP_SECRET_KEY; do
+          for name in POSTGRES_ADMIN_PASSWORD APP_DATABASE_PASSWORD MIGRATION_DATABASE_PASSWORD BOOTSTRAP_DATABASE_PASSWORD APP_SECRET_KEY; do
             value="$(openssl rand -hex 24)"
             echo "::add-mask::$value"
             printf '%s=%s\n' "$name" "$value" >> "$GITHUB_ENV"
@@ -64,7 +64,22 @@ jobs:
           TEST_DATABASE_ADMIN_URL="postgresql://guetteur_admin:${POSTGRES_ADMIN_PASSWORD}@127.0.0.1:5432/guetteur" \
           TEST_DATABASE_APP_URL="postgresql://app_user:${APP_DATABASE_PASSWORD}@127.0.0.1:5432/guetteur" \
           TEST_DATABASE_MIGRATION_URL="postgresql://migration_user:${MIGRATION_DATABASE_PASSWORD}@127.0.0.1:5432/guetteur" \
-          pytest -m integration
+          TEST_DATABASE_BOOTSTRAP_URL="postgresql://bootstrap_user:${BOOTSTRAP_DATABASE_PASSWORD}@127.0.0.1:5432/guetteur" \
+          output="$(pytest -m integration -rs 2>&1)" || { status=$?; printf '%s\n' "$output"; exit "$status"; }
+          printf '%s\n' "$output"
+          if grep -qi skipped <<< "$output"; then
+            echo "Des tests d'intégration ont été sautés."
+            exit 1
+          fi
+          if [[ "$output" =~ ([0-9]+)[[:space:]]+passed ]]; then
+            count="${BASH_REMATCH[1]}"
+          else
+            count=0
+          fi
+          if (( count < 40 )); then
+            echo "Au moins 40 tests d'intégration sont requis; résultat: $count."
+            exit 1
+          fi
       - name: Supprimer la base de test
         if: always()
         run: docker compose -p guetteur-test down -v

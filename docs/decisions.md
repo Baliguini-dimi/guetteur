@@ -84,11 +84,23 @@ Les tests d'intégration exécutés sur PostgreSQL 17.4 confirment les rôles, l
 
 ## 28 octobre 2026 - D20 : création des organisations et purge
 
-`app_user` ne reçoit aucun droit `INSERT` sur `organizations`. La création de la première organisation et l'inscription devront passer par une procédure contrôlée à concevoir. La purge de rétention devra utiliser un rôle dédié à concevoir. Ces deux mécanismes restent des points ouverts.
+`app_user` ne reçoit aucun droit `INSERT` sur `organizations`. La création de la première organisation passe par le rôle restreint `bootstrap_user`, validé en D23. La purge de rétention devra utiliser un rôle dédié à concevoir; ce point reste ouvert.
 
 ## 28 octobre 2026 - D21 : ports locaux configurables
 
 Les ports publiés par Docker Compose sont configurables avec `GUETTEUR_DB_PORT` et `GUETTEUR_API_PORT`, avec les valeurs par défaut 5432 et 8000. Cette possibilité répond au conflit de port 5432 signalé sur le poste. Le programme extérieur n'a pas été arrêté ni modifié. Le diagnostic de cette exécution n'a trouvé aucun écouteur Windows sur 5432 ou 8000, tandis que `Test-NetConnection` vers 5432 a répondu `True`.
+
+## 31 octobre 2026 - D22 : tables d'authentification
+
+La migration 0002 crée `users`, `backup_codes`, `sessions` et `audit_log`, toutes isolées par `organization_id`, avec RLS activée et forcée. L'adresse de `users` est en minuscules et unique globalement. `app_user` reçoit des droits de mise à jour par colonne sur `users`, `sessions` et `backup_codes`; `audit_log` reste en ajout seul. Les sessions provisoires sont révoquées plutôt que supprimées, car `app_user` n'a aucun droit de suppression sur cette table. `audit_log.user_id` n'a pas de clé étrangère afin que l'historique survive à la suppression d'un compte.
+
+## 31 octobre 2026 - D23 : rôle bootstrap_user
+
+`bootstrap_user` reçoit uniquement les droits d'insertion nécessaires, avec des politiques réservées à ce rôle. Il ne peut jamais lire les tables et son mot de passe n'est transmis qu'à la commande d'installation, jamais à l'API. La création du premier compte par cette commande sera réalisée à l'étape suivante.
+
+## 31 octobre 2026 - D24 : validation de la conception d'authentification
+
+Dimitri valide la note `docs/conception-authentification.md` et ses décisions A1 à A10. Les dépendances `argon2-cffi`, `pyotp` et `cryptography` seront ajoutées et verrouillées lors des étapes qui les utiliseront.
 
 ## Points ouverts
 
