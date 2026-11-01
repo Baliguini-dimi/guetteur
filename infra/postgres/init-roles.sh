@@ -3,10 +3,14 @@ set -eu
 
 psql --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" \
   --set=app_password="$APP_DATABASE_PASSWORD" \
-  --set=migration_password="$MIGRATION_DATABASE_PASSWORD" <<'SQL'
+  --set=migration_password="$MIGRATION_DATABASE_PASSWORD" \
+  --set=bootstrap_password="$BOOTSTRAP_DATABASE_PASSWORD" <<'SQL'
 CREATE ROLE app_user LOGIN PASSWORD :'app_password' NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT NOBYPASSRLS;
 CREATE ROLE migration_user LOGIN PASSWORD :'migration_password' NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT NOBYPASSRLS;
-GRANT CONNECT ON DATABASE guetteur TO app_user, migration_user;
+CREATE ROLE bootstrap_user LOGIN PASSWORD :'bootstrap_password' NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT NOBYPASSRLS;
+REVOKE ALL ON DATABASE guetteur FROM PUBLIC;
+GRANT CONNECT ON DATABASE guetteur TO app_user, migration_user, bootstrap_user;
+REVOKE ALL ON SCHEMA public FROM PUBLIC;
 GRANT USAGE, CREATE ON SCHEMA public TO migration_user;
-GRANT USAGE ON SCHEMA public TO app_user;
+GRANT USAGE ON SCHEMA public TO app_user, bootstrap_user;
 SQL

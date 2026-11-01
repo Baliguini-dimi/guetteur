@@ -21,6 +21,10 @@ class IsolationData(NamedTuple):
     site_b: UUID
     events_a: tuple[UUID, UUID]
     events_b: tuple[UUID, UUID]
+    users: tuple[UUID, UUID]
+    sessions: tuple[UUID, UUID]
+    backup_codes: tuple[UUID, UUID]
+    audit_logs: tuple[UUID, UUID]
 
 
 def _database_urls() -> dict[str, str]:
@@ -41,6 +45,15 @@ def _database_urls() -> dict[str, str]:
             pytest.fail("Une URL de base de test est invalide.")
         if host not in allowed_hosts:
             pytest.fail("Les tests d'intégration refusent cet hôte de base de données.")
+    bootstrap_url = os.environ.get("TEST_DATABASE_BOOTSTRAP_URL", "")
+    if bootstrap_url:
+        try:
+            bootstrap_host = urlparse(bootstrap_url).hostname
+        except ValueError:
+            pytest.fail("L'URL du rôle bootstrap est invalide.")
+        if bootstrap_host not in allowed_hosts:
+            pytest.fail("Les tests refusent cet hôte de base bootstrap.")
+        values["TEST_DATABASE_BOOTSTRAP_URL"] = bootstrap_url
     return values
 
 
@@ -58,6 +71,21 @@ def admin_connection(database_urls: dict[str, str]) -> Iterator[Connection[Any]]
         yield connection
     finally:
         connection.close()
+
+
+@pytest.fixture(scope="session")
+def bootstrap_connection(database_urls: dict[str, str]) -> Iterator[Connection[Any]]:
+    """Ouvre la connexion bootstrap si son URL de test est fournie."""
+    url = database_urls.get("TEST_DATABASE_BOOTSTRAP_URL")
+    if not url:
+        pytest.skip("TEST_DATABASE_BOOTSTRAP_URL n'est pas définie.")
+    connection = psycopg.connect(url)
+    try:
+        yield connection
+    finally:
+        if not connection.closed:
+            connection.rollback()
+            connection.close()
 
 
 @pytest.fixture
@@ -82,7 +110,22 @@ def isolation_data(admin_connection: Connection[Any]) -> Iterator[IsolationData]
     site_a, site_b = uuid4(), uuid4()
     events_a = (uuid4(), uuid4())
     events_b = (uuid4(), uuid4())
-    data = IsolationData(organization_a, organization_b, site_a, site_b, events_a, events_b)
+    users = (uuid4(), uuid4())
+    sessions = (uuid4(), uuid4())
+    backup_codes = (uuid4(), uuid4())
+    audit_logs = (uuid4(), uuid4())
+    data = IsolationData(
+        organization_a,
+        organization_b,
+        site_a,
+        site_b,
+        events_a,
+        events_b,
+        users,
+        sessions,
+        backup_codes,
+        audit_logs,
+    )
     occurred_at = datetime.now(UTC)
     with admin_connection.cursor() as cursor:
         cursor.executemany(
@@ -90,6 +133,58 @@ def isolation_data(admin_connection: Connection[Any]) -> Iterator[IsolationData]
             [
                 (organization_a, "Organisation A synthétique"),
                 (organization_b, "Organisation B synthétique"),
+            ],
+        )
+        cursor.executemany(
+            """
+            INSERT INTO users (id, organization_id, email, password_hash, role)
+            VALUES (%s, %s, %s, %s, %s)
+            """,
+            [
+                (
+                    users[0],
+                    organization_a,
+                    f"{users[0]}@a.example.test",
+                    "synthetic-hash-a",
+                    "owner",
+                ),
+                (
+                    users[1],
+                    organization_b,
+                    f"{users[1]}@b.example.test",
+                    "synthetic-hash-b",
+                    "owner",
+                ),
+            ],
+        )
+        cursor.executemany(
+            """
+            INSERT INTO sessions (id, organization_id, user_id, secret_hash, stage, expires_at)
+            VALUES (%s, %s, %s, %s, %s, now() + interval '1 hour')
+            """,
+            [
+                (sessions[0], organization_a, users[0], b"session-a", "full"),
+                (sessions[1], organization_b, users[1], b"session-b", "full"),
+            ],
+        )
+        cursor.executemany(
+            """
+            INSERT INTO backup_codes (id, organization_id, user_id, code_hash)
+            VALUES (%s, %s, %s, %s)
+            """,
+            [
+                (backup_codes[0], organization_a, users[0], "synthetic-code-a"),
+                (backup_codes[1], organization_b, users[1], "synthetic-code-b"),
+            ],
+        )
+        cursor.executemany(
+            """
+            INSERT INTO audit_log (id, organization_id, user_id, action, outcome)
+            VALUES (%s, %s, %s, %s, %s)
+            """,
+            [
+                (audit_logs[0], organization_a, users[0], "fixture", "success"),
+                (audit_logs[1], organization_b, users[1], "fixture", "success"),
             ],
         )
         cursor.executemany(

@@ -48,7 +48,7 @@ jobs:
       - name: Générer les secrets de test
         run: |
           set -euo pipefail
-          for name in POSTGRES_ADMIN_PASSWORD APP_DATABASE_PASSWORD MIGRATION_DATABASE_PASSWORD APP_SECRET_KEY; do
+          for name in POSTGRES_ADMIN_PASSWORD APP_DATABASE_PASSWORD MIGRATION_DATABASE_PASSWORD BOOTSTRAP_DATABASE_PASSWORD APP_SECRET_KEY; do
             value="$(openssl rand -hex 24)"
             echo "::add-mask::$value"
             printf '%s=%s\n' "$name" "$value" >> "$GITHUB_ENV"
@@ -58,13 +58,51 @@ jobs:
       - name: Appliquer les migrations
         working-directory: backend
         run: DATABASE_MIGRATION_URL="postgresql+psycopg://migration_user:${MIGRATION_DATABASE_PASSWORD}@127.0.0.1:5432/guetteur" alembic upgrade head
+      - name: Vérifier la réversibilité de la migration
+        working-directory: backend
+        run: |
+          set -euo pipefail
+          DATABASE_MIGRATION_URL="postgresql+psycopg://migration_user:${MIGRATION_DATABASE_PASSWORD}@127.0.0.1:5432/guetteur" alembic downgrade -1
+          insert_privilege="$(docker compose -p guetteur-test exec -T db psql -U guetteur_admin -d guetteur -tA -c "SELECT has_table_privilege('bootstrap_user', 'organizations', 'INSERT')")"
+          if [[ "$insert_privilege" != "f" ]]; then
+            echo "Le droit INSERT de bootstrap_user sur organizations subsiste après la descente de migration."
+            exit 1
+          fi
+          policy_count="$(docker compose -p guetteur-test exec -T db psql -U guetteur_admin -d guetteur -tA -c "SELECT count(*) FROM pg_policies WHERE policyname = 'organizations_bootstrap_insert'")"
+          if [[ "$policy_count" != "0" ]]; then
+            echo "La politique organizations_bootstrap_insert subsiste après la descente de migration."
+            exit 1
+          fi
+          users_table="$(docker compose -p guetteur-test exec -T db psql -U guetteur_admin -d guetteur -tA -c "SELECT to_regclass('public.users') IS NULL")"
+          if [[ "$users_table" != "t" ]]; then
+            echo "La table public.users subsiste après la descente de migration."
+            exit 1
+          fi
+          DATABASE_MIGRATION_URL="postgresql+psycopg://migration_user:${MIGRATION_DATABASE_PASSWORD}@127.0.0.1:5432/guetteur" alembic upgrade head
       - name: Tester l'isolation entre organisations
         working-directory: backend
         run: |
-          TEST_DATABASE_ADMIN_URL="postgresql://guetteur_admin:${POSTGRES_ADMIN_PASSWORD}@127.0.0.1:5432/guetteur" \
-          TEST_DATABASE_APP_URL="postgresql://app_user:${APP_DATABASE_PASSWORD}@127.0.0.1:5432/guetteur" \
-          TEST_DATABASE_MIGRATION_URL="postgresql://migration_user:${MIGRATION_DATABASE_PASSWORD}@127.0.0.1:5432/guetteur" \
-          pytest -m integration
+          set -uo pipefail
+          export TEST_DATABASE_ADMIN_URL="postgresql://guetteur_admin:${POSTGRES_ADMIN_PASSWORD}@127.0.0.1:5432/guetteur"
+          export TEST_DATABASE_APP_URL="postgresql://app_user:${APP_DATABASE_PASSWORD}@127.0.0.1:5432/guetteur"
+          export TEST_DATABASE_MIGRATION_URL="postgresql://migration_user:${MIGRATION_DATABASE_PASSWORD}@127.0.0.1:5432/guetteur"
+          export TEST_DATABASE_BOOTSTRAP_URL="postgresql://bootstrap_user:${BOOTSTRAP_DATABASE_PASSWORD}@127.0.0.1:5432/guetteur"
+          output="$(pytest -m integration -rs 2>&1)" || { status=$?; printf '%s\n' "$output"; exit "$status"; }
+          printf '%s\n' "$output"
+          if grep -qi skipped <<< "$output"; then
+            echo "Des tests d'intégration ont été sautés."
+            exit 1
+          fi
+          if [[ "$output" =~ ([0-9]+)[[:space:]]+passed ]]; then
+            count="${BASH_REMATCH[1]}"
+          else
+            count=0
+          fi
+          # Relever ce seuil à mesure que des tests d'intégration sont ajoutés.
+          if (( count < 80 )); then
+            echo "Au moins 80 tests d'intégration sont requis; résultat: $count."
+            exit 1
+          fi
       - name: Supprimer la base de test
         if: always()
         run: docker compose -p guetteur-test down -v
