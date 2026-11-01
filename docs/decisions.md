@@ -108,6 +108,8 @@ Dimitri valide la note `docs/conception-authentification.md` et ses décisions A
 
 La descente de la migration 0002 retire également le droit d'insertion de `bootstrap_user` sur `organizations`. La CI vérifie la réversibilité en descendant la migration, en contrôlant les droits et les politiques, puis en remontant la migration.
 
+Le 1er novembre 2026, le job d'isolation de la demande de fusion n°17 a signalé 82 tests sautés. Les variables `TEST_DATABASE_*` étaient écrites en préfixe d'une affectation sans commande et n'étaient donc pas exportées vers `pytest`. La garde contre les tests sautés a détecté l'incident. Les variables sont maintenant exportées explicitement et la garde exige au moins 80 tests réussis, sur 82 attendus. Le seuil doit être relevé à mesure que des tests sont ajoutés.
+
 ## Points ouverts
 
 - Choisir l'hébergement de test.
