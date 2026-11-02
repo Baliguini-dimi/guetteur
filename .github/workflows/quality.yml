@@ -98,9 +98,9 @@ jobs:
           else
             count=0
           fi
-          # Relever ce seuil à mesure que des tests d'intégration sont ajoutés.
-          if (( count < 80 )); then
-            echo "Au moins 80 tests d'intégration sont requis; résultat: $count."
+          # Le seuil reste au plus deux tests sous le total attendu (86).
+          if (( count < 84 )); then
+            echo "Au moins 84 tests d'intégration sont requis; résultat: $count."
             exit 1
           fi
       - name: Supprimer la base de test
