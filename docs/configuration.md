@@ -11,6 +11,7 @@ Copiez `.env.example` vers `.env` et renseignez les valeurs adaptées à votre e
 | `APP_DATABASE_PASSWORD` | Mot de passe du compte applicatif PostgreSQL | oui | à générer |
 | `MIGRATION_DATABASE_PASSWORD` | Mot de passe du compte PostgreSQL de migration | oui | à générer |
 | `BOOTSTRAP_DATABASE_PASSWORD` | Mot de passe du rôle de création du premier compte, utilisé uniquement par la commande d'installation | oui | à générer, 48 caractères hexadécimaux, jamais donné à l'API |
+| `BOOTSTRAP_DATABASE_URL` | Connexion de la commande de création du premier compte | oui | à composer avec le mot de passe de `bootstrap_user`, uniquement sur le serveur et jamais dans le service `api` |
 | `GUETTEUR_DB_PORT` | Port local publié par Docker Compose pour PostgreSQL | non | `5432` par défaut; à changer en cas de conflit avec un autre programme |
 | `GUETTEUR_API_PORT` | Port local publié par Docker Compose pour l'API | non | `8000` par défaut; à changer en cas de conflit avec un autre programme |
 | `SESSION_COOKIE_SECURE` | Active l'attribut Secure des cookies de session | non | `false` en local seulement |

@@ -110,9 +110,22 @@ La descente de la migration 0002 retire également le droit d'insertion de `boot
 
 Le 1er novembre 2026, le job d'isolation de la demande de fusion n°17 a signalé 82 tests sautés. Les variables `TEST_DATABASE_*` étaient écrites en préfixe d'une affectation sans commande et n'étaient donc pas exportées vers `pytest`. La garde contre les tests sautés a détecté l'incident. Les variables sont maintenant exportées explicitement et la garde exige au moins 80 tests réussis, sur 82 attendus. Le seuil doit être relevé à mesure que des tests sont ajoutés.
 
+## 2 novembre 2026 - D26 : hachage et politique des mots de passe
+
+Les mots de passe sont normalisés en Unicode NFKC, puis hachés avec Argon2id (`time_cost=2`, `memory_cost=19456` Kio, `parallelism=1`, `hash_len=32`, `salt_len=16`). La politique accepte 12 à 128 caractères, refuse la partie locale de l'adresse email, les valeurs présentes dans la liste locale ou les répétitions et suites triviales. Une empreinte factice est vérifiée quand le compte est absent afin de limiter les différences de temps de réponse. La liste locale, écrite à la main et minimale, n'est qu'une première protection; son remplacement par une liste vérifiée reste un point ouvert.
+
+## 2 novembre 2026 - D27 : dépendance Argon2
+
+La dépendance directe `argon2-cffi 25.1.0` (MIT, publiée le 3 juin 2025) et sa dépendance `argon2-cffi-bindings 26.1.0` (MIT, publiée le 20 août 2026) respectent le délai de publication minimal de quatorze jours. La régénération des deux locks ajoute également `cffi 2.1.1` (MIT-0, publiée le 3 août 2026) et `pycparser 3.12` (BSD-3-Clause, publiée le 22 octobre 2026). Ces versions sont verrouillées avec des empreintes sous Python 3.12 Linux.
+
+## 2 novembre 2026 - D28 : commande de création du premier compte
+
+La commande `create-owner` utilise `getpass` pour demander deux fois le mot de passe et se connecte avec le rôle restreint `bootstrap_user`. Dans une transaction unique, elle fixe d'abord `app.organization_id` à l'identifiant de la nouvelle organisation, puis insère l'organisation, le compte propriétaire et l'événement `owner_created` dans `audit_log`. Les identifiants UUID sont générés côté client; en cas d'erreur, la transaction est annulée.
+
 ## Points ouverts
 
 - Choisir l'hébergement de test.
 - Choisir le fournisseur email.
 - Définir le contact de sécurité.
 - Choisir la licence.
+- Remplacer la liste minimale de mots de passe courants par une liste vérifiée pour sa licence.
